@@ -30,3 +30,12 @@ def test_unrelated_units_are_skipped_not_forced():
     # a heading in the English (column 1) matches nothing and is skipped
     sim = np.array([[0.9, 0.1, 0.1], [0.1, 0.1, 0.9]])
     assert monotonic_align(sim) == [([0], [0]), ([1], [2])]
+
+
+def test_weak_bead_kept_only_between_close_neighbours():
+    from data.align import keep_beads
+
+    beads = [([0], [0]), ([1], [1]), ([2], [2]), ([9], [9])]
+    scores = [0.7, 0.3, 0.7, 0.3]
+    # bead 1 is boxed in by confident neighbours; bead 3 has none after it
+    assert keep_beads(beads, scores) == [True, True, True, False]

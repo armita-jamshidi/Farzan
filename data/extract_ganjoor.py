@@ -38,7 +38,7 @@ def couplets(poem: dict) -> list[tuple[str, str]]:
         idx = v.get("CoupletIndex")
         if idx is None or v.get("Position") not in ("Right", "Left"):
             continue  # skip prose lines, headings, single-line paragraphs
-        by_idx.setdefault(idx, {})[v["Position"]] = v["Text"].strip()
+        by_idx.setdefault(idx, {})[v["Position"]] = " ".join(v["Text"].split())
     return [(h["Right"], h["Left"]) for _, h in sorted(by_idx.items()) if "Right" in h and "Left" in h]
 
 

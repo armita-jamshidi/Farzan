@@ -131,6 +131,9 @@ def squash(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip()
 
 
+SHORT_WORDS = set("an am do go ye up us oh lo ah nor".split())
+
+
 def drop_marks(s: str) -> str:
     """Remove stray digits left by footnote marks and marginal verse numbers."""
     s = re.sub(r"(?<=\S)\s+[\di?°]?\d[\d?°]*(?=\s|$)", "", s)
@@ -187,6 +190,10 @@ def english_quality(s: str, vocab: set[str] | None = None) -> float:
     score = good / len(toks)
     if func < 0.12 and len(toks) >= 5:
         score *= func / 0.12
+    # OCR noise is full of stray digits and two-letter fragments ("HW", "Ut", "GS")
+    noise = sum(bool(re.search(r"\d", t)) or (0 < len(w) <= 2 and w not in FUNCTION_WORDS | SHORT_WORDS) for t, w in zip(toks, words))
+    if noise / len(toks) > 0.25:
+        score = min(score, 0.5)
     long = [w for w in words if len(w) >= 3]
     if vocab is not None and long:
         score = min(score, sum(w in vocab for w in long) / len(long))
@@ -455,6 +462,7 @@ def main() -> None:
             for r in rows:
                 r.update(
                     translator=src["translator"],
+                    translation_style=src["style"],
                     license_note=src["license_note"],
                     edition=f"{src['what']} (archive.org/details/{scan.archive_id})",
                     layout=scan.layout,

@@ -39,7 +39,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 BIAS = 0.3  # LaBSE similarity an unrelated Persian/English pair typically reaches; a match must beat it
 SKIP_PENALTY = 0.05  # cost of leaving a Persian couplet or English unit unaligned
 MERGE_PENALTY = 0.05  # small cost so merges only win when clearly better
-MIN_SIM = 0.45  # aligned beads below this similarity are dropped from the output
+MIN_SIM = 0.45  # beads at or above this similarity are kept on their own
+CONTEXT_MIN_SIM = 0.25  # weaker beads are kept only when confident neighbours sit right next to them
+
+HALF_LINE_CHARS = 60  # in line layouts, a lone line shorter than this is one hemistich
 
 PARAGRAPH_MOVES = [(1, 1), (2, 1), (1, 2)]
 LINE_MOVES = [(1, 1), (1, 2), (1, 3), (2, 1)]
@@ -157,15 +160,21 @@ def align_group(persian: list[dict], english: list[dict], embed, layout: str) ->
     else:
         merge, moves = {}, PARAGRAPH_MOVES
     band = None if layout == "lines" or max(sim.shape) < 400 else 300
-    out = []
-    for p_idx, e_idx in monotonic_align(sim, merge, moves, band):
+    beads = monotonic_align(sim, merge, moves, band)
+    scores = []
+    for p_idx, e_idx in beads:
         key = (len(p_idx), len(e_idx))
         if key in merge:
-            s = float(merge[key][p_idx[0], e_idx[0]])
+            scores.append(float(merge[key][p_idx[0], e_idx[0]]))
         else:
-            s = float(sim[np.ix_(p_idx, e_idx)].mean())
-        if s < MIN_SIM:
+            scores.append(float(sim[np.ix_(p_idx, e_idx)].mean()))
+    keep = keep_beads(beads, scores, max_gap=(2, 4 if layout == "lines" else 2))
+    out = []
+    for (p_idx, e_idx), s, k in zip(beads, scores, keep):
+        if not k:
             continue
+        if layout == "lines" and len(e_idx) == 1 and len(english[e_idx[0]]["english_text"]) < HALF_LINE_CHARS:
+            continue  # a single short line is only half a couplet; the spot-check found these incomplete
         base = dict(persian[p_idx[0]])
         if len(p_idx) > 1:  # two couplets share one English unit
             base["persian_text"] = " // ".join(persian[i]["persian_text"] for i in p_idx)
@@ -176,10 +185,12 @@ def align_group(persian: list[dict], english: list[dict], embed, layout: str) ->
         base.update(
             english_text=sep.join(e["english_text"] for e in eng),
             translator=eng[0]["translator"],
+            translation_style=eng[0]["translation_style"],
             license_note=eng[0]["license_note"],
             edition=eng[0]["edition"],
             english_units=[e["unit_id"] for e in eng],
             align_score=round(s, 4),
+            align_kept_by="score" if s >= MIN_SIM else "context",
             align_type=f"{len(p_idx)}:{len(e_idx)}",
         )
         if eng[0].get("translator_verse_est") is not None:
@@ -187,6 +198,37 @@ def align_group(persian: list[dict], english: list[dict], embed, layout: str) ->
             base["translator_verse_est"] = eng[0]["translator_verse_est"]
         out.append(base)
     return out
+
+
+def keep_beads(beads, scores, max_gap=(2, 2)) -> list[bool]:
+    """Which beads to keep.
+
+    LaBSE is weak on classical Persian, so a correct pair often scores below
+    MIN_SIM. A weak bead is kept when the confident beads just before and after
+    it are close on both sides (at most max_gap Persian couplets and English
+    units away): it is then boxed in, and its position alone makes it right.
+    """
+    strong = [s >= MIN_SIM for s in scores]
+    keep = list(strong)
+    prev = None
+    nxt = [None] * len(beads)
+    last = None
+    for k in range(len(beads) - 1, -1, -1):
+        nxt[k] = last
+        if strong[k]:
+            last = k
+    for k, (p_idx, e_idx) in enumerate(beads):
+        if not strong[k] and scores[k] >= CONTEXT_MIN_SIM and prev is not None and nxt[k] is not None:
+            a, b = beads[prev], beads[nxt[k]]
+            keep[k] = (
+                p_idx[0] - a[0][-1] <= max_gap[0]
+                and e_idx[0] - a[1][-1] <= max_gap[1]
+                and b[0][0] - p_idx[-1] <= max_gap[0]
+                and b[1][0] - e_idx[-1] <= max_gap[1]
+            )
+        if strong[k]:
+            prev = k
+    return keep
 
 
 def find_divan_ghazals(divan: list[dict], english: list[dict], embed, min_votes: int = 3) -> list[int]:
