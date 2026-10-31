@@ -14,7 +14,7 @@ Store a meter as a string of syllable weights for one hemistich (misra'):
 - `-` long, `u` short, `x` anceps (either is allowed)
 - `|` foot boundary, only for readability; strip it before matching
 
-Keep a table of meters, for example in `prosody/meters.py` or a YAML file, with the Persian name, the transliterated name, the feet, and the pattern:
+Keep a table of meters, in `prosody/meters.py`, with the Persian name, the transliterated name, the feet, and the pattern:
 
 | Meter | Feet | Pattern (one hemistich) |
 |---|---|---|

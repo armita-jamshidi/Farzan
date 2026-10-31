@@ -5,11 +5,11 @@ description: Use when cleaning, normalizing, tokenizing, or comparing Persian (F
 
 # Persian text handling
 
-Persian text from Ganjoor, model outputs, and Whisper transcripts uses inconsistent Unicode. The same word can look identical on screen but compare as different strings. All Persian text handling goes through one shared normalization module with unit tests. Don't write ad hoc `str.replace` calls in other files.
+Persian text from Ganjoor, model outputs, and Whisper transcripts uses inconsistent Unicode. The same word can look identical on screen but compare as different strings. All Persian text handling goes through the shared module `prosody/normalize.py` (entry points `normalize(text) -> str` and `tokenize(text) -> list[str]`), which has unit tests. Don't write ad hoc `str.replace` calls in other files.
 
 ## Two levels of normalization
 
-Keep two functions and use the right one:
+The module needs two levels, and every caller must pick the right one (for example a `light` option on `normalize`, or two functions):
 
 1. **`normalize_light(text)`**: for storing in the dataset, feeding translation models, and display. Keeps diacritics (harakat), because the meter scanner needs them.
 2. **`normalize_for_match(text)`**: for comparing words (WER, alignment, highlighting). Applies `normalize_light` and then strips everything that does not change which word was said.
