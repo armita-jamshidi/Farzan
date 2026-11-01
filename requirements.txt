@@ -1,0 +1,20 @@
+# data
+datasets>=3.0
+huggingface_hub>=0.25
+numpy>=1.26
+sentence-transformers>=3.0  # LaBSE for verse alignment
+
+# training / eval (milestones 2-3)
+transformers>=4.45
+peft>=0.13
+evaluate>=0.4
+sacrebleu>=2.4
+jiwer>=3.0
+torch>=2.3
+
+# app (milestones 4-5)
+gradio>=5.0
+librosa>=0.10
+
+# tests
+pytest>=8.0

@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+# generated data lives on the Hub, not in git
+data/interim/
+data/processed/
+data/raw/
+*.wav
+*.mp3
