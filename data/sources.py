@@ -2,7 +2,6 @@
 
 status:
   "ok"      public domain in both the US and the UK/EU, cleared for training and the Hub
-  "ask"     unclear or split status, waiting on the project owner's decision
   "exclude" under copyright, never used
 Downloads happen in data/fetch_translations.py; the URL for each source is
 checked against the scanned title page (edition and year) before use.
@@ -13,7 +12,7 @@ SOURCES = {
         "what": "Persian text of the Masnavi (6 books) and Divan-e Shams ghazals, with metre labels",
         "where": "https://github.com/ganjoor/ganjoor-data",
         "author_died": 1273,
-        "status": "ask",
+        "status": "ok",  # approved by the project owner, 2026-11-01
         "license_note": (
             "Rumi's text (13th c.) is public domain. The ganjoor-data repo has no LICENSE file; "
             "Ganjoor's software is GPL, and Hub mirrors label the data GPL-2.0 or CC BY 4.0 "
@@ -56,7 +55,7 @@ SOURCES = {
         "author_died": 1945,
         "books": [5, 6],
         "style": "literal prose, one paragraph per couplet",
-        "status": "ask",
+        "status": "exclude",  # owner decision 2026-11-01: public domain in the US too, or not at all
         "license_note": (
             "Public domain in the UK/EU (translator died 1945) but still under US copyright "
             "until 1 Jan 2030 (published 1934, 95-year term)."

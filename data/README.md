@@ -41,7 +41,7 @@ Each scan's title page is checked by `fetch_translations.py` before parsing.
 | Redhouse, The Mesnevi, Book 1 | `in.ernet.dli.2015.55252` | Trübner (no date on this copy; preface signed 1880, published 1881) |
 
 Not used: the archive's copy `mathnawiofjalalu0006unse` is Nicholson vol. VI
-(Books 5-6), a 1977 reprint, and Books 5-6 wait on a licensing decision.
+(Books 5-6), a 1977 reprint. Books 5-6 are excluded: published 1934, they stay under US copyright until 2030.
 Google-scanned copies of Redhouse were skipped because Google attaches a
 non-commercial usage request to them.
 
